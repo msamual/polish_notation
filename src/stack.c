@@ -3,11 +3,10 @@
 #include <stdlib.h>
 #include <string.h>
 
-// Инициализация стека
 stack *init() {
     stack *s = (stack *)malloc(sizeof(stack));
     if (s) {
-        s->data = NULL;  // Массив данных изначально пуст
+        s->data = NULL;
         s->top = -1;
         s->size = 0;
         s->capacity = 0;
@@ -16,7 +15,7 @@ stack *init() {
 }
 
 int push(stack *s, const char *str) {
-    int success = 0;  // Флаг для отслеживания успеха
+    int success = 0;
 
     if (s != NULL) {
         if (s->top + 1 == s->capacity) {
@@ -26,15 +25,15 @@ int push(stack *s, const char *str) {
                 s->data = new_data;
                 s->capacity = new_capacity;
             } else {
-                success = 0;  // Ошибка: не удалось выделить память
+                success = 0;
             }
         }
 
         if (s->top + 1 != s->capacity) {
-            s->data[s->top + 1] = strdup(str);  // Копируем строку
+            s->data[s->top + 1] = strdup(str);
             s->top++;
             s->size++;
-            success = 1;  // Успешное выполнение
+            success = 1;
         }
     }
 
@@ -42,23 +41,21 @@ int push(stack *s, const char *str) {
 }
 
 int pop(stack *s, char **str) {
-    int success = 0;  // Флаг для отслеживания успеха
+    int success = 0;
 
     if (s != NULL && s->top != -1) {
-        *str = s->data[s->top];  // Передаем строку наружу
+        *str = s->data[s->top];
         s->top--;
         s->size--;
-        success = 1;  // Успешное выполнение
+        success = 1;
     }
-
     return success;
 }
 
-// Освобождение памяти
 void destroy(stack *s) {
     if (s) {
         for (int i = 0; i <= s->top; i++) {
-            free(s->data[i]);  // Освобождаем каждую строку
+            free(s->data[i]);
         }
         free(s->data);
         free(s);

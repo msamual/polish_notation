@@ -7,24 +7,20 @@
 
 int main() {
     char buf[100000];
-    printf("Введите выражение: ");
+    printf("Input expression: ");
     fgets(buf, sizeof(buf), stdin);
     if (buf[strlen(buf) - 1] == '\n') {
         buf[strlen(buf) - 1] = '\0';
     }
-    printf("buf = %s", buf);
     queue *q = parse(buf);
-
-    char **rpn_array = copy_queue_to_array(q);
-    if (rpn_array == NULL) {
-        printf("Ошибка при копировании очереди\n");
+    if (q == NULL) {
+        printf("Error: incorrect input\n");
         destroy_queue(q);
         return 1;
     }
 
-    draw_graph(evaluate_polish_notation, rpn_array, q->size);
+    draw_graph(evaluate_polish_notation, q);
 
-    free_array(rpn_array, q->size);
     destroy_queue(q);
     return 0;
 }

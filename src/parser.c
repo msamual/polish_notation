@@ -24,14 +24,16 @@ int get_priority(const char *op) {
         res = 2;
     } else if (strcmp(op, SIN) == 0 || strcmp(op, COS) == 0 || strcmp(op, TAN) == 0 || strcmp(op, CTG) == 0 ||
                strcmp(op, SQRT) == 0 || strcmp(op, LOG) == 0) {
-        res = 3;
-    } else if (strcmp(op, UNAR_MINUS) == 0 || strcmp(op, OPEN_PAR) == 0 || strcmp(op, CLOSE_PAR) == 0) {
         res = 4;
+    } else if (strcmp(op, UNAR_MINUS) == 0) {
+        res = 3;
+    } else if (strcmp(op, OPEN_PAR) == 0 || strcmp(op, CLOSE_PAR) == 0) {
+        res = 5;
     }
     return res;
 }
 
-void pop_while_par(const stack *stack, queue *res) {
+void pop_while_par(stack *stack, queue *res) {
     char *tok;
     while (pop(stack, &tok)) {
         if (strcmp(tok, OPEN_PAR) == 0) {
@@ -43,9 +45,10 @@ void pop_while_par(const stack *stack, queue *res) {
     }
 }
 
-void pop_while(const stack *stack, queue *res, int priority) {
+void pop_while(stack *stack, queue *res, int priority) {
     char *tok;
-    while (stack->size > 0 && get_priority(stack->data[stack->top]) >= priority) {
+    while (stack->size > 0 && strcmp(stack->data[stack->top], OPEN_PAR) &&
+           get_priority(stack->data[stack->top]) > priority) {
         pop(stack, &tok);
         enqueue(res, tok);
         free(tok);
@@ -66,8 +69,8 @@ void polish_process(stack *stack, queue *res, const char *token) {
 }
 
 queue *to_postfix_notation(char *str) {
-    const stack *stack = init();
-    const queue *queue = init_queue();
+    stack *stack = init();
+    queue *queue = init_queue();
     if (stack != NULL && queue != NULL) {
         const char *token = strtok(str, " ");
         while (token != NULL) {
@@ -86,10 +89,12 @@ int is_digit(char c) { return c > 47 && c < 58; }
 
 char *remove_spaces(const char *str) {
     int len = strlen(str);
-    char *buf = calloc(sizeof(str), sizeof(char));
-    int j = 0;
-    for (int i = 0; i < len; i++) {
-        if (!is_space(str[i])) buf[j++] = str[i];
+    char *buf = calloc(len + 1, sizeof(char));
+    if (buf != NULL) {
+        int j = 0;
+        for (int i = 0; i < len; i++) {
+            if (!is_space(str[i])) buf[j++] = str[i];
+        }
     }
     return buf;
 }
@@ -106,7 +111,18 @@ int add_operand(char *dst, const char *str) {
 
 int is_unar_minus(const char *dst) {
     int len = strlen(dst);
-    return len == 0 || (!is_digit(dst[len - 2]) && dst[len - 1] != 'x');
+    return len == 0 || strchr("+-*/%^(,", dst[len - 2]) != NULL;
+}
+
+int is_hidden_star(const char *dst) {
+    int len = strlen(dst);
+    return len > 0 && strchr("0123456789)x", dst[len - 2]) != NULL;
+}
+
+int add_hidden_star(char *dst, const char *op) {
+    if (is_hidden_star(dst)) strcat(dst, "* ");
+    strcat(dst, op);
+    return 1;
 }
 
 int add_token(char *dst, char *str) {
@@ -121,7 +137,7 @@ int add_token(char *dst, char *str) {
     else if (strstr(str, DIV) == str)
         op = DIV;
     else if (strstr(str, OPEN_PAR) == str)
-        op = OPEN_PAR;
+        len = add_hidden_star(dst, OPEN_PAR);
     else if (strstr(str, CLOSE_PAR) == str)
         op = CLOSE_PAR;
     else if (strstr(str, SIN) == str)
@@ -137,7 +153,7 @@ int add_token(char *dst, char *str) {
     else if (strstr(str, LOG) == str)
         op = LOG;
     else if (strstr(str, VAR) == str)
-        op = VAR;
+        len = add_hidden_star(dst, VAR);
     else if (is_digit(*str))
         len = add_operand(dst, str);
     else if (*str == 0)
@@ -149,25 +165,26 @@ int add_token(char *dst, char *str) {
         len = strlen(op);
     }
     if (len > 0) strcat(dst, " ");
-
     return len;
 }
 
 char *tokenize(char *str) {
-    char *res = calloc(sizeof(str) * 2 + 1, sizeof(char));
-    int token_size;
-    while (*str && (token_size = add_token(res, str)) > 0) {
-        str += token_size;
-    }
-    if (token_size == -1) {
-        free(res);
-        res = NULL;
+    char *res = calloc(strlen(str) * 3 + 1, sizeof(char));
+    if (res != NULL) {
+        int token_size;
+        while (*str && (token_size = add_token(res, str)) > 0) {
+            str += token_size;
+        }
+        if (token_size == -1) {
+            free(res);
+            res = NULL;
+        }
     }
     return res;
 }
 
 int is_correct_brackets(char *str) {
-    const stack *stack = init();
+    stack *stack = init();
     int res = 1;
     while (*str) {
         if (*str == '(')

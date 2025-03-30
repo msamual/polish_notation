@@ -1,13 +1,9 @@
 #include "queue.h"
 
-#include <stdlib.h>
-#include <string.h>
-
-// Инициализация очереди
 queue *init_queue() {
     queue *q = (queue *)malloc(sizeof(queue));
     if (q) {
-        q->data = NULL;  // Массив данных изначально пуст
+        q->data = NULL;
         q->front = -1;
         q->rear = -1;
         q->size = 0;
@@ -17,10 +13,9 @@ queue *init_queue() {
 }
 
 int enqueue(queue *q, const char *str) {
-    int success = 0;  // Флаг для отслеживания успеха
+    int success = 0;
 
     if (q != NULL) {
-        // Проверяем, нужно ли увеличить ёмкость очереди
         if (q->size == q->capacity) {
             int new_capacity = (q->capacity == 0) ? 2 : q->capacity * 2;
             char **new_data = (char **)realloc(q->data, new_capacity * sizeof(char *));
@@ -28,33 +23,29 @@ int enqueue(queue *q, const char *str) {
                 q->data = new_data;
                 q->capacity = new_capacity;
             } else {
-                return 0;  // Ошибка: не удалось выделить память
+                return 0;
             }
         }
 
-        // Добавляем новый элемент в очередь
         if (q->front == -1) {
             q->front = 0;
         }
 
         q->rear = (q->rear + 1) % q->capacity;
-        q->data[q->rear] = strdup(str);  // strdup выделяет память для новой строки
+        q->data[q->rear] = strdup(str);
         q->size++;
-        success = 1;  // Успешное выполнение
+        success = 1;
     }
 
     return success;
 }
 
-/*
 int dequeue(queue *q, char **str) {
-    int success = 0;  // Флаг для отслеживания успеха
+    int success = 0;
 
     if (q != NULL && q->size > 0) {
-        // Получаем строку из очереди
         *str = q->data[q->front];
 
-        // Если в очереди один элемент, сбрасываем front и rear
         if (q->front == q->rear) {
             q->front = -1;
             q->rear = -1;
@@ -63,23 +54,21 @@ int dequeue(queue *q, char **str) {
         }
 
         q->size--;
-        success = 1;  // Успешное выполнение
+        success = 1;
     }
 
     return success;
 }
-*/
 
-// Освобождение памяти
 void destroy_queue(queue *q) {
     if (q) {
         for (int i = 0; i < q->size; i++) {
             int index = (q->front + i) % q->capacity;
             if (q->data[index] != NULL) {
-                free(q->data[index]);  // Освобождаем каждую строку
+                free(q->data[index]);
             }
         }
-        free(q->data);  // Освобождаем массив указателей
-        free(q);        // Освобождаем саму структуру
+        free(q->data);
+        free(q);
     }
 }

@@ -17,9 +17,7 @@ int perform_unary_operation(stack *s, const char *operator);
 int perform_binary_operation(stack *s, const char *operator);
 int perform_operation(stack *s, const char *operator);
 
-double evaluate_polish_notation(char **array, int size, double x_value);
-char **copy_queue_to_array(const queue *q);
-void free_array(char **array, int size);
+double evaluate_polish_notation(queue *q, double x_value);
 
 double handle_negation(double operand);
 double handle_sin(double operand);
@@ -29,4 +27,4 @@ double handle_ctg(double operand);
 double handle_sqrt(double operand);
 double handle_ln(double operand);
 
-#endif  // POLISH_NOTATION_H
+#endif
